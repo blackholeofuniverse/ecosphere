@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import User from '../models/user.model.js';
 import dotenv from "dotenv";
 import { generateToken } from '../lib/utils.js';
+import cloudinary from '../lib/cloudinary.js';
 dotenv.config();
 
 export const signUp = async (req, res) => {
@@ -72,5 +73,31 @@ export const logout = (_req, res) => {
 }
 
 export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        const userId = req.user._id
 
+        if (!profilePic) return res.status(400).json({ message: "Please select an image" });
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic)
+
+        const updatedUser = await User.findByIdAndUpdate(userId, { profilePic: uploadResponse.secure_url }, { new: true });
+
+        if (!updatedUser) return res.status(400).json({ message: "Failed to update profile" });
+
+        res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+
+    } catch (error) {
+        console.log("Error in update profile controller: ", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const checkAuth = (req, res) => {
+    try {
+        res.status(200).json(req.user)
+    } catch (error) {
+        console.log("Error in check auth controller: ", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }

@@ -3,7 +3,7 @@ import { checkAuth, login, logout, signUp, updateProfile } from "../controllers/
 import { protectRoute } from "../middlewares/auth.middleware.js";
 const router = express.Router()
 
-router.post("/sign-up", signUp);
+router.get("/users", protectRoute, getUsersForSidebar);
 
 router.post("/login", login);
 
